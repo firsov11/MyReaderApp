@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "686130697158",
+    "project_id": "myreader-f8307",
+    "storage_bucket": "myreader-f8307.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:686130697158:android:91b7b3268d49afb94218c7",
+        "android_client_info": {
+          "package_name": "com.firsov.myreaderapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPimJMcN2Zr_ThSaiThP8kAgOs1ZIXlQU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
