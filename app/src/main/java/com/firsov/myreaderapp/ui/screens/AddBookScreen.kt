@@ -2,19 +2,39 @@ package com.firsov.myreaderapp.ui.screens
 
 import android.app.DatePickerDialog
 import android.widget.Toast
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.DateRange // Используем DateRange для календаря
-import androidx.compose.material.icons.Icons
 import com.firsov.myreaderapp.data.Book
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +46,7 @@ fun AddBookScreen(onBookAdded: () -> Unit) {
     var description by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     var selectedGenre by remember { mutableStateOf("") }
-    var next_inspection_date by remember { mutableStateOf("") }
+    var nextInspectionDate by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf("") }
 
     val genres = listOf("Покажчик напруги", "Діелектричні рукавиці", "Діелектричні боти", "Діелектричний килимок", "Захисний щиток")
@@ -42,7 +62,7 @@ fun AddBookScreen(onBookAdded: () -> Unit) {
             val date = Calendar.getInstance()
             date.set(year, month, dayOfMonth)
             selectedDate = dateFormat.format(date.time)
-            next_inspection_date = selectedDate
+            nextInspectionDate = selectedDate
         },
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
@@ -55,7 +75,7 @@ fun AddBookScreen(onBookAdded: () -> Unit) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Добавить книгу", style = MaterialTheme.typography.headlineMedium)
+        Text("Картка обліку", style = MaterialTheme.typography.headlineMedium)
 
         // Выпадающий список с жанрами
         ExposedDropdownMenuBox(
@@ -107,7 +127,7 @@ fun AddBookScreen(onBookAdded: () -> Unit) {
 
         // TextField для выбора даты (страница книги)
         TextField(
-            value = next_inspection_date,
+            value = nextInspectionDate,
             onValueChange = { },
             label = { Text("Дата наступної перевірки") },
             modifier = Modifier.fillMaxWidth(),
@@ -123,19 +143,25 @@ fun AddBookScreen(onBookAdded: () -> Unit) {
 
         Button(
             onClick = {
-                if (name.isBlank() || description.isBlank() || selectedGenre.isBlank() || next_inspection_date.isBlank()) {
+                if (name.isBlank() || description.isBlank() || selectedGenre.isBlank() || nextInspectionDate.isBlank()) {
                     Toast.makeText(context, "Заполните все поля", Toast.LENGTH_SHORT).show()
                 } else {
-                    val newBook = Book(name, description, selectedGenre, next_inspection_date)
+                    val newBook = Book(
+                        name = name,
+                        description = description,
+                        selectedGenre = selectedGenre,
+                        nextInspectionDate = nextInspectionDate
+                    )
+
                     db.collection("books").add(newBook).addOnSuccessListener {
-                        Toast.makeText(context, "Книга добавлена", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Картка створена", Toast.LENGTH_SHORT).show()
                         onBookAdded()
                     }
                 }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Сохранить")
+            Text("Зберегти")
         }
     }
 }

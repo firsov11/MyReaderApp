@@ -19,7 +19,7 @@ class MainViewModel : ViewModel() {
         fetchBooks()
     }
 
-    private fun fetchBooks() {
+    fun fetchBooks() {
         viewModelScope.launch {
             db.collection("books").get().addOnSuccessListener { result ->
                 _books.value = result.toObjects(Book::class.java)
@@ -29,5 +29,16 @@ class MainViewModel : ViewModel() {
 
     fun addBook(book: Book) {
         db.collection("books").document().set(book)
+    }
+
+    fun deleteBook(bookId: String) {
+        Firebase.firestore.collection("books")
+            .whereEqualTo("id", bookId)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    document.reference.delete()
+                }
+            }
     }
 }
