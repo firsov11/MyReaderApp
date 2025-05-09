@@ -18,7 +18,8 @@ import androidx.compose.runtime.getValue
 @Composable
 fun MainScreen(
     viewModel: MainViewModel = viewModel(),
-    onAddClick: (() -> Unit)? = null
+    onAddClick: (() -> Unit)? = null,
+    onBookClick: (Book) -> Unit
 ) {
     val books by viewModel.books.collectAsState()
 
@@ -32,7 +33,8 @@ fun MainScreen(
                 .fillMaxHeight(0.8f)
         ) {
             items(books) { book ->
-                BookCard(book = book)
+                BookCard(book = book,
+                    onClick = { onBookClick(book) })
             }
         }
 
@@ -44,14 +46,14 @@ fun MainScreen(
                 if (onAddClick != null) {
                     onAddClick()
                 } else {
-                    // fallback для тестов
                     viewModel.addBook(Book("Новая книга", "Описание", "123", ""))
                 }
             }
         ) {
-            Text("Добавить книгу")
+            Text("Створити картку")
         }
     }
 }
+
 
 
