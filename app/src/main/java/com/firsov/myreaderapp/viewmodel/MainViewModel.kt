@@ -13,6 +13,9 @@ class MainViewModel : ViewModel() {
     private val _books = MutableStateFlow<List<Book>>(emptyList())
     val books: StateFlow<List<Book>> = _books
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     private val db = Firebase.firestore
 
     init {
@@ -20,10 +23,12 @@ class MainViewModel : ViewModel() {
     }
 
     fun fetchBooks() {
-        viewModelScope.launch {
-            db.collection("books").get().addOnSuccessListener { result ->
-                _books.value = result.toObjects(Book::class.java)
-            }
+        _isLoading.value = true
+        db.collection("books").get().addOnSuccessListener { result ->
+            _books.value = result.toObjects(Book::class.java)
+            _isLoading.value = false
+        }.addOnFailureListener {
+            _isLoading.value = false
         }
     }
 
@@ -32,9 +37,7 @@ class MainViewModel : ViewModel() {
     }
 
     fun deleteBook(bookId: String) {
-        Firebase.firestore.collection("books")
-            .whereEqualTo("id", bookId)
-            .get()
+        db.collection("books").whereEqualTo("id", bookId).get()
             .addOnSuccessListener { documents ->
                 for (document in documents) {
                     document.reference.delete()

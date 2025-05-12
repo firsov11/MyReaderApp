@@ -12,14 +12,17 @@ gmsVersion = "4.4.2"
 bomVersion = "33.12.0"
 lifecycleVersion = "2.7.0"
 navVersion = "2.5.3"
+workVersion = "2.9.0"
 
 [libraries]
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "bomVersion" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore-ktx" }
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage-ktx" }
 
-androidx-lifecycle = {group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleVersion"}
-androidx-navigation = {group = "androidx.navigation", name = "navigation-compose", version.ref = "navVersion"}
+androidx-work = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workVersion"}
+
+androidx-lifecycle = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleVersion"}
+androidx-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navVersion"}
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
