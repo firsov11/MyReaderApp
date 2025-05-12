@@ -144,7 +144,7 @@ fun AddBookScreen(onBookAdded: () -> Unit) {
         Button(
             onClick = {
                 if (name.isBlank() || description.isBlank() || selectedGenre.isBlank() || nextInspectionDate.isBlank()) {
-                    Toast.makeText(context, "Заполните все поля", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Заповніть усі поля", Toast.LENGTH_SHORT).show()
                 } else {
                     val newBook = Book(
                         name = name,
