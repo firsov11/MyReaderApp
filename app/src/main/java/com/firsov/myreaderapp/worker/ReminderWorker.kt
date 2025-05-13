@@ -27,7 +27,7 @@ class ReminderWorker(appContext: Context, workerParams: WorkerParameters) :
             books.forEach { book ->
                 val date = book.nextInspectionDate
                 if (date == today || isWithinDays(date, 3)) {
-                    showNotification("Перевірка", "Наближається дата перевірки для: ${book.selectedGenre} ${book.description}")
+                    showNotification("Наближається дата перевірки для: ${book.selectedGenre} ${book.description}")
                 }
             }
 
@@ -50,7 +50,7 @@ class ReminderWorker(appContext: Context, workerParams: WorkerParameters) :
         }
     }
 
-    private fun showNotification(title: String, message: String) {
+    private fun showNotification(message: String) {
         val notificationManager =
             applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "inspection_channel"
@@ -63,7 +63,6 @@ class ReminderWorker(appContext: Context, workerParams: WorkerParameters) :
         }
 
         val notification = NotificationCompat.Builder(applicationContext, channelId)
-            .setContentTitle(title)
             .setContentText(message)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setAutoCancel(true)
