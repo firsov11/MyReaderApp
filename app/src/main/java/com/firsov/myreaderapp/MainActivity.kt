@@ -21,7 +21,6 @@ import com.firsov.myreaderapp.ui.screens.MainScreen
 import com.firsov.myreaderapp.ui.theme.MyReaderAppTheme
 import com.firsov.myreaderapp.viewmodel.MainViewModel
 import java.util.*
-
 import androidx.work.*
 import com.firsov.myreaderapp.worker.ReminderWorker
 import java.util.concurrent.TimeUnit
@@ -53,6 +52,8 @@ class MainActivity : ComponentActivity() {
         // 🔄 Новый способ — запускаем WorkManager
         scheduleReminderWorker()
 
+        runReminderCheckNow()
+
         setContent {
             MyReaderAppTheme {
                 AppNavigation()
@@ -74,10 +75,15 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    private fun runReminderCheckNow() {
+        val request = OneTimeWorkRequestBuilder<ReminderWorker>().build()
+        WorkManager.getInstance(this).enqueue(request)
+    }
+
     private fun calculateInitialDelay(): Long {
         val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 16)
-            set(Calendar.MINUTE, 25)
+            set(Calendar.HOUR_OF_DAY, 10)
+            set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
             if (before(Calendar.getInstance())) {
                 add(Calendar.DAY_OF_YEAR, 1)

@@ -19,6 +19,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -69,99 +70,108 @@ fun AddBookScreen(onBookAdded: () -> Unit) {
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    Surface(                                     // 👈 ОБЕРТКА
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
-        Text("Картка обліку", style = MaterialTheme.typography.headlineMedium)
 
-        // Выпадающий список с жанрами
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TextField(
-                value = selectedGenre,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Тип захисного засобу") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded)
-                },
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth()
-            )
+            Text("Картка обліку", style = MaterialTheme.typography.headlineMedium)
 
-            ExposedDropdownMenu(
+            // Выпадающий список с жанрами
+            ExposedDropdownMenuBox(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onExpandedChange = { expanded = !expanded }
             ) {
-                genres.forEach { genre ->
-                    DropdownMenuItem(
-                        text = { Text(genre) },
-                        onClick = {
-                            selectedGenre = genre
-                            expanded = false
-                        }
-                    )
-                }
-            }
-        }
+                TextField(
+                    value = selectedGenre,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Тип захисного засобу") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
 
-        TextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Назва") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        TextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Примітки") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        // TextField для выбора даты (страница книги)
-        TextField(
-            value = nextInspectionDate,
-            onValueChange = { },
-            label = { Text("Дата наступної перевірки") },
-            modifier = Modifier.fillMaxWidth(),
-            readOnly = true,  // Делаем поле только для чтения
-            trailingIcon = {
-                IconButton(onClick = { datePickerDialog.show() }) {
-                    Icon(imageVector = Icons.Filled.DateRange, contentDescription = "Choose Date") // Используем DateRange
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                if (name.isBlank() || description.isBlank() || selectedGenre.isBlank() || nextInspectionDate.isBlank()) {
-                    Toast.makeText(context, "Заповніть усі поля", Toast.LENGTH_SHORT).show()
-                } else {
-                    val newBook = Book(
-                        name = name,
-                        description = description,
-                        selectedGenre = selectedGenre,
-                        nextInspectionDate = nextInspectionDate
-                    )
-
-                    db.collection("books").add(newBook).addOnSuccessListener {
-                        Toast.makeText(context, "Картка створена", Toast.LENGTH_SHORT).show()
-                        onBookAdded()
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    genres.forEach { genre ->
+                        DropdownMenuItem(
+                            text = { Text(genre) },
+                            onClick = {
+                                selectedGenre = genre
+                                expanded = false
+                            }
+                        )
                     }
                 }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Зберегти")
+            }
+
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Назва") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            TextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Примітки") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            // TextField для выбора даты (страница книги)
+            TextField(
+                value = nextInspectionDate,
+                onValueChange = { },
+                label = { Text("Дата наступної перевірки") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,  // Делаем поле только для чтения
+                trailingIcon = {
+                    IconButton(onClick = { datePickerDialog.show() }) {
+                        Icon(
+                            imageVector = Icons.Filled.DateRange,
+                            contentDescription = "Choose Date"
+                        ) // Используем DateRange
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    if (name.isBlank() || description.isBlank() || selectedGenre.isBlank() || nextInspectionDate.isBlank()) {
+                        Toast.makeText(context, "Заповніть усі поля", Toast.LENGTH_SHORT).show()
+                    } else {
+                        val newBook = Book(
+                            name = name,
+                            description = description,
+                            selectedGenre = selectedGenre,
+                            nextInspectionDate = nextInspectionDate
+                        )
+
+                        db.collection("books").add(newBook).addOnSuccessListener {
+                            Toast.makeText(context, "Картка створена", Toast.LENGTH_SHORT).show()
+                            onBookAdded()
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Зберегти")
+            }
         }
     }
 }
