@@ -1,13 +1,11 @@
 package com.firsov.myreaderapp.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.firsov.myreaderapp.data.Book
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
     private val _books = MutableStateFlow<List<Book>>(emptyList())
@@ -25,15 +23,31 @@ class MainViewModel : ViewModel() {
     fun fetchBooks() {
         _isLoading.value = true
         db.collection("books").get().addOnSuccessListener { result ->
-            _books.value = result.toObjects(Book::class.java)
+            val booksList = result.map { doc ->
+                Book(
+                    id = doc.id, // 🔥 это ключевой момент
+                    number = doc.getString("number") ?: "",
+                    description = doc.getString("description") ?: "",
+                    selectedGenre = doc.getString("selectedGenre") ?: "",
+                    nextInspectionDate = doc.getString("nextInspectionDate") ?: ""
+                )
+            }
+            _books.value = booksList
             _isLoading.value = false
         }.addOnFailureListener {
             _isLoading.value = false
         }
     }
 
-    fun addBook(book: Book) {
-        db.collection("books").document().set(book)
+    fun addBook(book: Book, onSuccess: () -> Unit = {}) {
+        val newDocRef = db.collection("books").document()
+        val bookWithId = book.copy(id = newDocRef.id)
+
+        newDocRef.set(bookWithId)
+            .addOnSuccessListener {
+                fetchBooks() // обновим список
+                onSuccess()
+            }
     }
 
     fun deleteBook(bookId: String) {
@@ -41,6 +55,15 @@ class MainViewModel : ViewModel() {
             .addOnSuccessListener { documents ->
                 for (document in documents) {
                     document.reference.delete()
+                }
+            }
+    }
+
+    fun updateBook(updatedBook: Book) {
+        db.collection("books").whereEqualTo("id", updatedBook.id).get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    document.reference.set(updatedBook)
                 }
             }
     }

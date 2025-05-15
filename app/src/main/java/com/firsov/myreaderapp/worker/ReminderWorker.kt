@@ -20,14 +20,14 @@ class ReminderWorker(appContext: Context, workerParams: WorkerParameters) :
 
     override suspend fun doWork(): Result {
         return try {
-            val today = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
+            val today = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date())
             val result = Firebase.firestore.collection("books").get().await()
             val books = result.toObjects(Book::class.java)
 
             books.forEach { book ->
                 val date = book.nextInspectionDate
                 if (date == today || isWithinDays(date, 3)) {
-                    showNotification("Наближається дата перевірки для: ${book.selectedGenre} ${book.description}")
+                    showNotification("Наближається дата перевірки для: ${book.selectedGenre} # ${book.number}")
                 }
             }
 
@@ -40,7 +40,7 @@ class ReminderWorker(appContext: Context, workerParams: WorkerParameters) :
 
     private fun isWithinDays(dateStr: String, days: Int): Boolean {
         return try {
-            val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+            val formatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
             val inspectionDate = formatter.parse(dateStr) ?: return false
             val today = Calendar.getInstance().time
             val diff = inspectionDate.time - today.time

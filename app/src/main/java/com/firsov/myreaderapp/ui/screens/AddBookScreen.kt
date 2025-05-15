@@ -30,33 +30,39 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.firsov.myreaderapp.data.Book
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.firsov.myreaderapp.viewmodel.MainViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddBookScreen(onBookAdded: () -> Unit) {
+fun AddBookScreen(
+    onBookAdded: () -> Unit,
+    viewModel: MainViewModel = viewModel()
+) {
     val context = LocalContext.current
-    val db = Firebase.firestore
 
-    var name by remember { mutableStateOf("") }
+    var number by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     var selectedGenre by remember { mutableStateOf("") }
     var nextInspectionDate by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf("") }
 
-    val genres = listOf("Покажчик напруги", "Діелектричні рукавиці", "Діелектричні боти", "Діелектричний килимок", "Захисний щиток")
+    val genres = listOf(
+        "Покажчик напруги",
+        "Діелектричні рукавиці",
+        "Діелектричні боти",
+        "Захисний щиток"
+    )
 
-    // Current Date Picker State
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
 
-    // Date Picker Dialog
     val datePickerDialog = DatePickerDialog(
         context,
         { _, year, month, dayOfMonth ->
@@ -70,11 +76,10 @@ fun AddBookScreen(onBookAdded: () -> Unit) {
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-    Surface(                                     // 👈 ОБЕРТКА
+    Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -83,7 +88,6 @@ fun AddBookScreen(onBookAdded: () -> Unit) {
         ) {
             Text("Картка обліку", style = MaterialTheme.typography.headlineMedium)
 
-            // Выпадающий список с жанрами
             ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded }
@@ -118,32 +122,31 @@ fun AddBookScreen(onBookAdded: () -> Unit) {
             }
 
             TextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Назва") },
+                value = number,
+                onValueChange = { number = it },
+                label = { Text("Номер") },
                 modifier = Modifier.fillMaxWidth()
             )
 
             TextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Примітки") },
+                label = { Text("Примітки (не обов'язково)") },
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // TextField для выбора даты (страница книги)
             TextField(
                 value = nextInspectionDate,
-                onValueChange = { },
+                onValueChange = {},
                 label = { Text("Дата наступної перевірки") },
                 modifier = Modifier.fillMaxWidth(),
-                readOnly = true,  // Делаем поле только для чтения
+                readOnly = true,
                 trailingIcon = {
                     IconButton(onClick = { datePickerDialog.show() }) {
                         Icon(
                             imageVector = Icons.Filled.DateRange,
                             contentDescription = "Choose Date"
-                        ) // Используем DateRange
+                        )
                     }
                 }
             )
@@ -152,18 +155,18 @@ fun AddBookScreen(onBookAdded: () -> Unit) {
 
             Button(
                 onClick = {
-                    if (name.isBlank() || description.isBlank() || selectedGenre.isBlank() || nextInspectionDate.isBlank()) {
+                    if (number.isBlank() || selectedGenre.isBlank() || nextInspectionDate.isBlank()) {
                         Toast.makeText(context, "Заповніть усі поля", Toast.LENGTH_SHORT).show()
                     } else {
-                        val newBook = Book(
-                            name = name,
+                        val book = Book(
+                            number = number,
                             description = description,
                             selectedGenre = selectedGenre,
                             nextInspectionDate = nextInspectionDate
                         )
 
-                        db.collection("books").add(newBook).addOnSuccessListener {
-                            Toast.makeText(context, "Картка створена", Toast.LENGTH_SHORT).show()
+                        viewModel.addBook(book) {
+                            Toast.makeText(context, "Збережено", Toast.LENGTH_SHORT).show()
                             onBookAdded()
                         }
                     }
@@ -175,3 +178,5 @@ fun AddBookScreen(onBookAdded: () -> Unit) {
         }
     }
 }
+
+

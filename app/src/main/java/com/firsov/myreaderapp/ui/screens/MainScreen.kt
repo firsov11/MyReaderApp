@@ -89,7 +89,7 @@ fun MainScreen(
 
 fun isInspectionOverdue(dateStr: String): Boolean {
     return try {
-        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        val formatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         val inspectionDate = formatter.parse(dateStr) ?: return false
         inspectionDate.before(Calendar.getInstance().time)
     } catch (e: Exception) {
@@ -99,7 +99,7 @@ fun isInspectionOverdue(dateStr: String): Boolean {
 
 fun isInspectionSoon(dateStr: String, days: Int = 3): Boolean {
     return try {
-        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        val formatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
         val inspectionDate = formatter.parse(dateStr) ?: return false
         val today = Calendar.getInstance().time
         val diff = inspectionDate.time - today.time

@@ -9,20 +9,33 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.ui.Modifier
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.firsov.myreaderapp.ui.screens.AddBookScreen
-import com.firsov.myreaderapp.ui.screens.BookDetailsScreen
+import com.firsov.myreaderapp.ui.screens.BookDetailsScreenModal
+import com.firsov.myreaderapp.ui.screens.EditBookScreen
 import com.firsov.myreaderapp.ui.screens.MainScreen
 import com.firsov.myreaderapp.ui.theme.MyReaderAppTheme
 import com.firsov.myreaderapp.viewmodel.MainViewModel
-import java.util.*
-import androidx.work.*
 import com.firsov.myreaderapp.worker.ReminderWorker
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
@@ -52,13 +65,20 @@ class MainActivity : ComponentActivity() {
         // 🔄 Новый способ — запускаем WorkManager
         scheduleReminderWorker()
 
-        runReminderCheckNow()
+        //runReminderCheckNow()
 
         setContent {
             MyReaderAppTheme {
-                AppNavigation()
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background // 👈 тут задаётся глобальный фон
+                ) {
+                    val mainViewModel: MainViewModel by viewModels()
+                    AppNavigation(mainViewModel)
+                }
             }
         }
+
     }
 
     private fun scheduleReminderWorker() {
@@ -94,35 +114,91 @@ class MainActivity : ComponentActivity() {
 
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun AppNavigation() {
-    val navController = rememberNavController()
+fun AppNavigation(viewModel: MainViewModel) {
+    val navController = rememberAnimatedNavController()
 
-    NavHost(navController = navController, startDestination = "main") {
+    AnimatedNavHost(
+        navController = navController,
+        startDestination = "main"
+    ) {
         composable("main") {
-            val viewModel: MainViewModel = viewModel()
-
-            // Обновляем список книг каждый раз при входе на экран
-            LaunchedEffect(Unit) {
-                viewModel.fetchBooks()
-            }
-
             MainScreen(
                 viewModel = viewModel,
-                onAddClick = { navController.navigate("add") },
-                onBookClick = { book -> navController.navigate("bookDetails/${book.id}") }
+                onAddClick = { navController.navigate("addBook") },
+                onBookClick = { book ->
+                    navController.navigate("bookDetails/${book.id}")
+                }
+            )
+
+        }
+
+        composable("addBook") {
+            AddBookScreen(
+                onBookAdded = {
+                    viewModel.fetchBooks() // 👉 подгружаем книги заново
+                    navController.popBackStack()
+                }
             )
         }
 
-        composable("add") {
-            AddBookScreen(onBookAdded = { navController.popBackStack() })
-        }
-        composable("bookDetails/{bookId}") { backStackEntry ->
+        composable(
+            route = "bookDetails/{bookId}",
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it / 2 },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it / 2 },
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
+        ) { backStackEntry ->
             val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
-            BookDetailsScreen(
+            BookDetailsScreenModal(
                 bookId = bookId,
-                onBookDeleted = { navController.popBackStack() }
+                viewModel = viewModel,
+                onDismiss = {
+                    navController.popBackStack()
+                },
+                onEditClick = { bookId ->
+                    navController.navigate("editBook/$bookId")
+                }
+            )
+        }
+
+        composable("editBook/{bookId}") { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
+            EditBookScreen(
+                bookId = bookId,
+                viewModel = viewModel,
+                onBookUpdated = {
+                    viewModel.fetchBooks()
+                    navController.popBackStack()
+                },
+                onCancel = {
+                    navController.popBackStack()
+                }
             )
         }
     }
 }
+
+
+
