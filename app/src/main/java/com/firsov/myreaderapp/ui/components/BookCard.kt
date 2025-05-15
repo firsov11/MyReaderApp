@@ -35,7 +35,7 @@ fun BookCard(
             Row {
                 Text(text = book.selectedGenre)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = book.description)
+                Text(text = "# ${book.number}")
             }
             Text(text = book.nextInspectionDate)
             // и другие поля
