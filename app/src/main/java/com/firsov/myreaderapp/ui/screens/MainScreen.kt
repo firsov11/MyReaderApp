@@ -1,48 +1,50 @@
 package com.firsov.myreaderapp.ui.screens
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.firsov.myreaderapp.data.Book
 import com.firsov.myreaderapp.ui.components.BookCard
 import com.firsov.myreaderapp.viewmodel.MainViewModel
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-
 import java.text.SimpleDateFormat
-import java.util.*
-import androidx.compose.ui.graphics.Color
+import java.util.Calendar
+import java.util.Locale
 
 @Composable
 fun MainScreen(
     viewModel: MainViewModel = viewModel(),
     onAddClick: (() -> Unit)? = null,
-    onBookClick: (Book) -> Unit
+    onBookClick: (Book) -> Unit,
+    onLogoutClick: (() -> Unit)? = null
 ) {
     val books by viewModel.books.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    Surface(                                     // 👈 ОБЕРТКА
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-
+    Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             if (isLoading) {
-                // Показать индикатор загрузки, если данные еще загружаются
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -50,7 +52,6 @@ fun MainScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                // Отображаем список книг, если данные загружены
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -64,24 +65,26 @@ fun MainScreen(
                             highlight = highlightColor
                         )
                     }
-
-
                 }
             }
 
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp),
-                onClick = {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Button(onClick = {
                     if (onAddClick != null) {
                         onAddClick()
                     } else {
                         viewModel.addBook(Book("Новая книга", "Описание", "123", ""))
                     }
+                }) {
+                    Text("Створити картку")
                 }
-            ) {
-                Text("Створити картку")
+
+                Button(onClick = { onLogoutClick?.invoke() }) {
+                    Text("Вийти")
+                }
             }
         }
     }
@@ -116,9 +119,3 @@ fun getHighlightColor(dateStr: String): Color {
         else -> Color.Unspecified
     }
 }
-
-
-
-
-
-

@@ -28,7 +28,7 @@ fun BookCard(
             .fillMaxWidth()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = if (highlight != Color.Unspecified) highlight else MaterialTheme.colorScheme.surface
+            containerColor = if (highlight != Color.Unspecified) highlight else MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(modifier = Modifier.padding(8.dp)) {

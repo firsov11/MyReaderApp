@@ -17,20 +17,16 @@ accompanist = "0.34.0"
 material = "1.11.0"
 material3 = "1.2.0-alpha10"
 
+
 [libraries]
+firebase-auth = { module = "com.google.firebase:firebase-auth"}
+
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
-
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-
 accompanist-navigation-animation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "accompanist" }
-
-
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "bomVersion" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore-ktx" }
-firebase-storage = { group = "com.google.firebase", name = "firebase-storage-ktx" }
-
 androidx-work = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workVersion"}
-
 androidx-lifecycle = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleVersion"}
 androidx-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navVersion"}
 

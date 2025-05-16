@@ -44,12 +44,12 @@ dependencies {
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
-    implementation(libs.firebase.storage)
     implementation(libs.androidx.lifecycle)
     implementation(libs.androidx.navigation)
     implementation(libs.androidx.work)
     implementation(libs.accompanist.navigation.animation)
     implementation(libs.material)
+    implementation(libs.firebase.auth)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -28,13 +28,16 @@ import androidx.work.WorkManager
 import com.firsov.myreaderapp.ui.screens.AddBookScreen
 import com.firsov.myreaderapp.ui.screens.BookDetailsScreenModal
 import com.firsov.myreaderapp.ui.screens.EditBookScreen
+import com.firsov.myreaderapp.ui.screens.LoginScreen
 import com.firsov.myreaderapp.ui.screens.MainScreen
+import com.firsov.myreaderapp.ui.screens.SplashScreen
 import com.firsov.myreaderapp.ui.theme.MyReaderAppTheme
 import com.firsov.myreaderapp.viewmodel.MainViewModel
 import com.firsov.myreaderapp.worker.ReminderWorker
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.firebase.auth.FirebaseAuth
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
@@ -121,18 +124,37 @@ fun AppNavigation(viewModel: MainViewModel) {
 
     AnimatedNavHost(
         navController = navController,
-        startDestination = "main"
+        startDestination = "splash"
     ) {
-        composable("main") {
-            MainScreen(
-                viewModel = viewModel,
-                onAddClick = { navController.navigate("addBook") },
-                onBookClick = { book ->
-                    navController.navigate("bookDetails/${book.id}")
+        composable("splash") {
+            SplashScreen(navController)
+        }
+
+        composable("login") {
+            LoginScreen(
+                onLoginSuccess = {
+                    navController.navigate("main") {
+                        popUpTo("login") { inclusive = true }
+                    }
                 }
             )
-
         }
+
+        composable("main") {
+            MainScreen(
+                onAddClick = { navController.navigate("addBook") },
+                onBookClick = { book ->
+                    navController.navigate("bookDetails/${book.id}") // ✔ правильный маршрут
+                },
+                onLogoutClick = {
+                    FirebaseAuth.getInstance().signOut()
+                    navController.navigate("login") {
+                        popUpTo("main") { inclusive = true }
+                    }
+                }
+            )
+        }
+
 
         composable("addBook") {
             AddBookScreen(

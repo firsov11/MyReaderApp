@@ -5,19 +5,22 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
 val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF3C5233),
+    primary = Color(0xFF314429),
     onPrimary = Color(0xFFE6F4EA),
-    primaryContainer = Color(0xFF5E6E4A),
+    primaryContainer = Color(0xFF465237),
     onPrimaryContainer = Color(0xFFE6F4EA),
-    secondary = Color(0xFF7A8B66),
+    secondary = Color(0xFF4B563E),
     onSecondary = Color(0xFFFFF5DC),
-    background = Color(0xFF1A261B),
+    background = Color(0xFF212F22),
     onBackground = Color(0xFFD8EAD8),
     surface = Color(0xFF475E46),
     onSurface = Color(0xFFD8EAD8),
     error = Color(0xFFA94A3F),
-    onError = Color(0xFFFFEFEA)
-)
+    onError = Color(0xFFFFEFEA),
+    surfaceVariant = Color(0xFF283623), // светлее surface
+    onSurfaceVariant = Color(0xFFE0F2E0),
+
+    )
 
 val LightColorScheme = lightColorScheme(
     primary = Color(0xFFA8D8B9),
@@ -31,7 +34,9 @@ val LightColorScheme = lightColorScheme(
     surface = Color(0xFFE3F6ED),
     onSurface = Color(0xFF2A3D33),
     error = Color(0xFFB5565E),
-    onError = Color(0xFFFFF3F4)
+    onError = Color(0xFFFFF3F4),
+    surfaceVariant = Color(0xFFC6F3B6), // светлее surface
+    onSurfaceVariant = Color(0xFFE0F2E0),
 )
 
 
