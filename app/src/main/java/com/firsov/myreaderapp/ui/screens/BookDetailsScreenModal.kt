@@ -79,7 +79,7 @@ fun BookDetailsScreenModal(
                         Spacer(Modifier.height(4.dp))
                         Text("Опис: ${book.description}")
                         Spacer(Modifier.height(4.dp))
-                        Text("Дата перевірки: ${book.nextInspectionDate}")
+                        Text("Дата наступної перевірки: ${book.nextInspectionDate}")
 
                         Spacer(Modifier.height(16.dp))
 
