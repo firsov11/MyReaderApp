@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
 import com.firsov.myreaderapp.viewmodel.MainViewModel
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.compose.material3.ExperimentalMaterial3Api
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,20 +27,39 @@ fun EditBookScreen(
     val books by viewModel.books.collectAsState()
     val originalBook = books.find { it.id == bookId }
 
-    var number by remember { mutableStateOf(TextFieldValue(originalBook?.number ?: "")) }
-    var description by remember { mutableStateOf(TextFieldValue(originalBook?.description ?: "")) }
-    var selectedGenre by remember { mutableStateOf(originalBook?.selectedGenre ?: "") }
-    var nextInspectionDate by remember { mutableStateOf(originalBook?.nextInspectionDate ?: "") }
+    // Пока книга не найдена — показываем индикатор загрузки
+    if (originalBook == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
-    val genreOptions = listOf("Художня", "Документація", "Технічна", "Інше")
+    // Состояния редактируемых полей
+    var number by remember { mutableStateOf(TextFieldValue("")) }
+    var description by remember { mutableStateOf(TextFieldValue("")) }
+    var selectedGenre by remember { mutableStateOf("") }
+    var nextInspectionDate by remember { mutableStateOf("") }
+    var isActive by remember { mutableStateOf(true) }
+
+    // Заполняем состояния при первом получении originalBook
+    LaunchedEffect(originalBook.id) {
+        number = TextFieldValue(originalBook.number)
+        description = TextFieldValue(originalBook.description)
+        selectedGenre = originalBook.selectedGenre
+        nextInspectionDate = originalBook.nextInspectionDate
+        isActive = originalBook.isActive
+    }
+
     val context = LocalContext.current
+    val calendar = Calendar.getInstance()
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
-
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
         Text("Редагувати картку", style = MaterialTheme.typography.titleLarge)
-
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
@@ -70,11 +89,7 @@ fun EditBookScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-
         Spacer(modifier = Modifier.height(8.dp))
-
-        val context = LocalContext.current
-        val calendar = Calendar.getInstance()
 
         OutlinedTextField(
             value = nextInspectionDate,
@@ -95,10 +110,7 @@ fun EditBookScreen(
                         calendar.get(Calendar.DAY_OF_MONTH)
                     ).show()
                 }) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = "Вибрати дату"
-                    )
+                    Icon(Icons.Default.DateRange, contentDescription = "Вибрати дату")
                 }
             },
             modifier = Modifier
@@ -118,26 +130,43 @@ fun EditBookScreen(
                 }
         )
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Картка активна", style = MaterialTheme.typography.bodyLarge)
+            Switch(
+                checked = isActive,
+                onCheckedChange = { isActive = it }
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             TextButton(onClick = onCancel) {
                 Text("Скасувати")
             }
 
-            Button(onClick = {
-                if (originalBook != null) {
+            Button(
+                onClick = {
                     val updatedBook = originalBook.copy(
                         number = number.text,
                         description = description.text,
                         selectedGenre = selectedGenre,
-                        nextInspectionDate = nextInspectionDate
+                        nextInspectionDate = nextInspectionDate,
+                        isActive = isActive
                     )
                     viewModel.updateBook(updatedBook)
                     onBookUpdated()
                 }
-            }) {
+            ) {
                 Text("Зберегти")
             }
         }

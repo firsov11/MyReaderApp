@@ -5,5 +5,6 @@ data class Book (
     val number: String = "",
     val description: String = "",
     val selectedGenre: String = "",
-    val nextInspectionDate: String = ""
+    val nextInspectionDate: String = "",
+    val isActive: Boolean = true
 )

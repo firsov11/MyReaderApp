@@ -1,5 +1,6 @@
 package com.firsov.myreaderapp.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.firsov.myreaderapp.data.Book
 import com.google.firebase.firestore.ktx.firestore
@@ -24,13 +25,17 @@ class MainViewModel : ViewModel() {
         _isLoading.value = true
         db.collection("books").get().addOnSuccessListener { result ->
             val booksList = result.map { doc ->
-                Book(
-                    id = doc.id, // 🔥 это ключевой момент
+                val book = Book(
+                    id = doc.id,
                     number = doc.getString("number") ?: "",
                     description = doc.getString("description") ?: "",
                     selectedGenre = doc.getString("selectedGenre") ?: "",
-                    nextInspectionDate = doc.getString("nextInspectionDate") ?: ""
+                    nextInspectionDate = doc.getString("nextInspectionDate") ?: "",
+                    isActive = doc.getBoolean("active") ?: true
                 )
+                Log.d("FirestoreBook", "id=${book.id}, isActive=${book.isActive}")
+
+                book
             }
             _books.value = booksList
             _isLoading.value = false
@@ -38,6 +43,7 @@ class MainViewModel : ViewModel() {
             _isLoading.value = false
         }
     }
+
 
     fun addBook(book: Book, onSuccess: () -> Unit = {}) {
         val newDocRef = db.collection("books").document()
