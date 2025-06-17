@@ -4,11 +4,13 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.firsov.myreaderapp.R
 import com.firsov.myreaderapp.data.Book
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
@@ -19,21 +21,40 @@ class ReminderWorker(appContext: Context, workerParams: WorkerParameters) :
     CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            Log.w("ReminderWorker", "User not logged in")
+            return Result.failure()
+        }
+
+        val uid = user.uid
+        val db = Firebase.firestore
+
         return try {
             val today = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date())
-            val result = Firebase.firestore.collection("books").get().await()
+            val result = db.collection("users")
+                .document(uid)
+                .collection("books")
+                .get()
+                .await()
+
             val books = result.toObjects(Book::class.java)
+
+            if (books.isEmpty()) {
+                Log.d("ReminderWorker", "No books found for user $uid")
+            }
 
             books.forEach { book ->
                 val date = book.nextInspectionDate
                 if (date == today || isWithinDays(date, 3)) {
-                    showNotification("Наближається дата перевірки для: ${book.selectedGenre} # ${book.number}")
+                    Log.d("ReminderWorker", "Notification for book: ${book.number}")
+                    showNotification("Нагадування", "Наближається дата перевірки для: ${book.selectedGenre} # ${book.number}")
                 }
             }
 
             Result.success()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("ReminderWorker", "Error during reminder check", e)
             Result.retry()
         }
     }
@@ -50,21 +71,24 @@ class ReminderWorker(appContext: Context, workerParams: WorkerParameters) :
         }
     }
 
-    private fun showNotification(message: String) {
+    private fun showNotification(title: String, message: String) {
         val notificationManager =
             applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "inspection_channel"
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                channelId, "Нагадування", NotificationManager.IMPORTANCE_DEFAULT
+                channelId,
+                "Нагадування про перевірку",
+                NotificationManager.IMPORTANCE_DEFAULT
             )
             notificationManager.createNotificationChannel(channel)
         }
 
         val notification = NotificationCompat.Builder(applicationContext, channelId)
+            .setContentTitle(title)
             .setContentText(message)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // замените на ваш значок
             .setAutoCancel(true)
             .build()
 

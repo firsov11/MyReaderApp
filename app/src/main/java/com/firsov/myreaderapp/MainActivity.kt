@@ -1,6 +1,7 @@
 package com.firsov.myreaderapp
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -14,15 +15,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
+import androidx.work.*
 import com.firsov.myreaderapp.navigation.AppNavigation
 import com.firsov.myreaderapp.ui.theme.MyReaderAppTheme
 import com.firsov.myreaderapp.viewmodel.MainViewModel
 import com.firsov.myreaderapp.worker.ReminderWorker
-import java.util.Calendar
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
@@ -32,7 +30,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Запрос разрешения
+        // Запрос разрешения на уведомления (Android 13+)
         notificationPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { isGranted ->
@@ -43,31 +41,42 @@ class MainActivity : ComponentActivity() {
             ).show()
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
 
-        // 🔄 Новый способ — запускаем WorkManager
-        scheduleReminderWorker()
+        // Однократный запуск проверки при первом старте
+        checkFirstLaunchAndRunReminder()
 
-        //runReminderCheckNow()
+        // Ежедневное напоминание
+        scheduleReminderWorker()
 
         setContent {
             MyReaderAppTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background // 👈 тут задаётся глобальный фон
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     val mainViewModel: MainViewModel by viewModels()
                     AppNavigation(mainViewModel)
                 }
             }
         }
-
     }
 
+    // ✅ Однократная проверка при первом запуске
+    private fun checkFirstLaunchAndRunReminder() {
+        val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val isFirstLaunch = prefs.getBoolean("first_launch", true)
+        if (isFirstLaunch) {
+            runReminderCheckNow()
+            prefs.edit().putBoolean("first_launch", false).apply()
+        }
+    }
+
+    // 🔁 Ежедневный WorkManager
     private fun scheduleReminderWorker() {
         val workRequest = PeriodicWorkRequestBuilder<ReminderWorker>(
             1, TimeUnit.DAYS
@@ -82,11 +91,13 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    // ▶️ Мгновенный единоразовый запуск
     private fun runReminderCheckNow() {
         val request = OneTimeWorkRequestBuilder<ReminderWorker>().build()
         WorkManager.getInstance(this).enqueue(request)
     }
 
+    // 🕒 Вычисление задержки до 10:00 следующего дня
     private fun calculateInitialDelay(): Long {
         val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 10)
@@ -98,8 +109,4 @@ class MainActivity : ComponentActivity() {
         }
         return calendar.timeInMillis - System.currentTimeMillis()
     }
-
 }
-
-
-
