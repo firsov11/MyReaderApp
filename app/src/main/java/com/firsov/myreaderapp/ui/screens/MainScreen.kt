@@ -28,6 +28,13 @@ fun MainScreen(
     val books by viewModel.books.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    // ✅ Сортируем книги по дате инспекции
+    val sortedBooks = remember(books) {
+        books.sortedBy { book ->
+            parseDate(book.nextInspectionDate)
+        }
+    }
+
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -51,7 +58,7 @@ fun MainScreen(
                             .fillMaxWidth()
                             .fillMaxHeight()
                     ) {
-                        items(books) { book ->
+                        items(sortedBooks) { book ->
                             val highlightColor = getHighlightColor(book.nextInspectionDate)
                             BookCard(
                                 book = book,
@@ -86,6 +93,16 @@ fun MainScreen(
         }
     }
 }
+
+fun parseDate(dateStr: String): Date {
+    return try {
+        val formatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        formatter.parse(dateStr) ?: Date(Long.MAX_VALUE)
+    } catch (e: Exception) {
+        Date(Long.MAX_VALUE)
+    }
+}
+
 
 // ⏰ Проверка просроченной инспекции
 fun isInspectionOverdue(dateStr: String): Boolean {
