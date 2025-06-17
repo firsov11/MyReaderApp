@@ -2,11 +2,14 @@ package com.firsov.myreaderapp.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.firsov.myreaderapp.data.Book
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
     private val _books = MutableStateFlow<List<Book>>(emptyList())
@@ -16,61 +19,84 @@ class MainViewModel : ViewModel() {
     val isLoading: StateFlow<Boolean> = _isLoading
 
     private val db = Firebase.firestore
+    private val userId = Firebase.auth.currentUser?.uid
 
     init {
         fetchBooks()
     }
 
     fun fetchBooks() {
+        val uid = userId ?: return
         _isLoading.value = true
-        db.collection("books").get().addOnSuccessListener { result ->
-            val booksList = result.map { doc ->
-                val book = Book(
-                    id = doc.id,
-                    number = doc.getString("number") ?: "",
-                    description = doc.getString("description") ?: "",
-                    selectedGenre = doc.getString("selectedGenre") ?: "",
-                    nextInspectionDate = doc.getString("nextInspectionDate") ?: "",
-                    isActive = doc.getBoolean("active") ?: true
-                )
-                Log.d("FirestoreBook", "id=${book.id}, isActive=${book.isActive}")
-
-                book
+        db.collection("users").document(uid).collection("books")
+            .get()
+            .addOnSuccessListener { result ->
+                val booksList = result.map { doc ->
+                    val book = Book(
+                        id = doc.id,
+                        number = doc.getString("number") ?: "",
+                        description = doc.getString("description") ?: "",
+                        selectedGenre = doc.getString("selectedGenre") ?: "",
+                        nextInspectionDate = doc.getString("nextInspectionDate") ?: "",
+                        isActive = doc.getBoolean("active") ?: true
+                    )
+                    Log.d("FirestoreBook", "id=${book.id}, isActive=${book.isActive}")
+                    book
+                }
+                _books.value = booksList
+                _isLoading.value = false
             }
-            _books.value = booksList
-            _isLoading.value = false
-        }.addOnFailureListener {
-            _isLoading.value = false
-        }
+            .addOnFailureListener { e ->
+                Log.e("FirestoreError", "Ошибка загрузки книг: ${e.message}")
+                _isLoading.value = false
+            }
     }
 
-
     fun addBook(book: Book, onSuccess: () -> Unit = {}) {
-        val newDocRef = db.collection("books").document()
+        val uid = userId ?: return
+        val newDocRef = db.collection("users").document(uid).collection("books").document()
         val bookWithId = book.copy(id = newDocRef.id)
 
         newDocRef.set(bookWithId)
             .addOnSuccessListener {
-                fetchBooks() // обновим список
+                fetchBooks()
                 onSuccess()
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirestoreError", "Ошибка добавления книги: ${e.message}")
             }
     }
 
     fun deleteBook(bookId: String) {
-        db.collection("books").whereEqualTo("id", bookId).get()
-            .addOnSuccessListener { documents ->
-                for (document in documents) {
-                    document.reference.delete()
-                }
+        val uid = userId ?: return
+        db.collection("users").document(uid).collection("books").document(bookId)
+            .delete()
+            .addOnSuccessListener {
+                fetchBooks()
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirestoreError", "Ошибка удаления книги: ${e.message}")
             }
     }
 
     fun updateBook(updatedBook: Book) {
-        db.collection("books").whereEqualTo("id", updatedBook.id).get()
-            .addOnSuccessListener { documents ->
-                for (document in documents) {
-                    document.reference.set(updatedBook)
-                }
+        val uid = userId ?: return
+        db.collection("users").document(uid).collection("books")
+            .document(updatedBook.id)
+            .set(updatedBook)
+            .addOnSuccessListener {
+                fetchBooks()
             }
+            .addOnFailureListener { e ->
+                Log.e("FirestoreError", "Ошибка обновления книги: ${e.message}")
+            }
+    }
+
+    fun refreshBooks() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            fetchBooks()
+            _isLoading.value = false
+        }
     }
 }

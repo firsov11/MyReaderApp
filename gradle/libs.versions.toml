@@ -21,6 +21,9 @@ material3 = "1.2.0-alpha10"
 [libraries]
 firebase-auth = { module = "com.google.firebase:firebase-auth"}
 
+accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version.ref = "accompanist" }
+
+
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 accompanist-navigation-animation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "accompanist" }
