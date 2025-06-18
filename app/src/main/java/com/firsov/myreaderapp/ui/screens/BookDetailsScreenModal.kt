@@ -92,31 +92,32 @@ fun BookDetailsScreenModal(
                             }
 
                             IconButton(onClick = { showDialog = true }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Удалить")
+                                Icon(Icons.Default.Delete, contentDescription = "Видалити")
                             }
                         }
 
                         if (showDialog) {
                             AlertDialog(
                                 onDismissRequest = { showDialog = false },
-                                title = { Text("Видалення") },
-                                text = { Text("Ви впевнені, що хочете видалити картку?") },
+                                title = { Text("Видалення", color = MaterialTheme.colorScheme.onSurface) },
+                                text = { Text("Ви впевнені, що хочете видалити картку?", color = MaterialTheme.colorScheme.onSurface) },
                                 confirmButton = {
                                     TextButton(onClick = {
                                         viewModel.deleteBook(book.id)
                                         showDialog = false
                                         onDismiss()
                                     }) {
-                                        Text("Видалити")
+                                        Text("Видалити", color = MaterialTheme.colorScheme.onSurface)
                                     }
                                 },
                                 dismissButton = {
                                     TextButton(onClick = { showDialog = false }) {
-                                        Text("Відміна")
+                                        Text("Відміна", color = MaterialTheme.colorScheme.onSurface)
                                     }
                                 }
                             )
                         }
+
                     }
                 } else {
                     Text("Картку не знайдено.")
